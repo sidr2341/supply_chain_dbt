@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: supplier_performance
+    description: >
+      Inbound delivery performance at supplier grain. Each shipment is matched
+      to its purchase order on po_id, and that order is matched to the supplier
+      on supplier_id. Shipments or orders that fail either match are excluded.
+    columns:
+      - name: supplier_id
+        description: Supplier grain. One row per supplier that has at least one matched shipment.
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_suppliers')
+                field: supplier_id
+      - name: supplier_name
+        description: Supplier name from stg_suppliers.
+        data_tests:
+          - not_null
+      - name: shipments
+        description: Count of inbound shipments matched to this supplier.
+      - name: on_time_rate
+        description: >
+          Share of shipments (0 to 1) whose actual delivery date is on or
+          before the purchase order expected delivery date.
+      - name: avg_delay_days
+        description: >
+          Average days from expected delivery to actual delivery. Negative
+          values mean the supplier delivered early.

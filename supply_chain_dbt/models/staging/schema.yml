@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_suppliers
+    description: Cleaned suppliers from raw.
+    columns:
+      - name: supplier_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_shipments
+    description: Cleaned inbound shipments from raw.
+    columns:
+      - name: shipment_id
+        data_tests:
+          - unique
+          - not_null
+      - name: po_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_purchase_orders')
+                field: po_id
+
+  - name: stg_purchase_orders
+    description: Cleaned purchase orders from raw.
+    columns:
+      - name: po_id
+        data_tests:
+          - unique
+          - not_null
+      - name: supplier_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_suppliers')
+                field: supplier_id
