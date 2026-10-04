@@ -1,0 +1,55 @@
+---
+description: dbt model naming, refs, and tests for supply_chain_dbt
+globs: supply_chain_dbt/**/*.sql,supply_chain_dbt/**/*.yml
+alwaysApply: false
+---
+
+# dbt conventions
+
+Project: `supply_chain_dbt`. Raw tables live in source `raw` (`models/staging/sources.yml`).
+
+## Naming
+
+Prefix every model by layer. One model per file; the file name matches the model name.
+
+| Prefix | Layer | Example |
+| --- | --- | --- |
+| `stg_` | Staging: rename, cast, light cleanup of one source | `stg_purchase_orders` |
+| `int_` | Intermediate: joins and business logic | `int_shipment_delays` |
+| `fct_` | Fact: events or metrics at a grain | `fct_shipments` |
+| `dim_` | Dimension: descriptive entities | `dim_suppliers` |
+
+Put staging models under `models/staging/`, intermediate under `models/intermediate/`, and facts and dimensions under `models/marts/`.
+
+## Dependencies
+
+Reference other models with `{{ ref('model_name') }}` and raw tables with `{{ source('raw', 'table_name') }}`. Never hardcode a database, schema, or table name in `FROM` / `JOIN`.
+
+```sql
+-- good
+from {{ source('raw', 'shipments') }} sh
+join {{ ref('stg_purchase_orders') }} po using (po_id)
+
+-- bad
+from raw.shipments sh
+join main.stg_purchase_orders po using (po_id)
+```
+
+## Tests
+
+Every new or changed model gets a `schema.yml` entry in the same folder:
+
+- A one-line `description`
+- `not_null` and `unique` (or a compound unique test) on the grain / primary key
+- `relationships` tests when a column is a foreign key to another model
+
+```yaml
+models:
+  - name: stg_purchase_orders
+    description: Cleaned purchase orders from raw.
+    columns:
+      - name: po_id
+        data_tests:
+          - unique
+          - not_null
+```

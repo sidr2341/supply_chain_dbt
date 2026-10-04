@@ -1,0 +1,14 @@
+version: 2
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: suppliers
+      - name: products
+      - name: warehouses
+      - name: customers
+      - name: purchase_orders
+      - name: po_lines
+      - name: shipments
+      - name: sales_orders
+      - name: sales_order_lines

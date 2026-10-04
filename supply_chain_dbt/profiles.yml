@@ -1,0 +1,8 @@
+supply_chain_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: supply_chain.duckdb
+      schema: analytics
+      threads: 4
