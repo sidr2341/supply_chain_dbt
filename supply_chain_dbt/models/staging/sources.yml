@@ -1,14 +1,72 @@
 version: 2
+
 sources:
   - name: raw
+    description: >
+      Supply chain landing data. Master tables describe the parties and
+      places the business trades with. Transaction tables record events
+      and follow a fixed order within each flow.
+
+      Inbound, buying stock, in this order:
+      1. purchase_orders — the order placed with a supplier
+      2. po_lines — the products and quantities on that order
+      3. shipments — the inbound delivery of a received order
+
+      Outbound, selling stock, in this order:
+      1. sales_orders — the customer order
+      2. sales_order_lines — the products and quantities on that order
     schema: raw
     tables:
       - name: suppliers
+        description: >
+          Master. One row per company that supplies products. Referenced
+          by products and purchase_orders. Not part of an event sequence.
+
       - name: products
+        description: >
+          Master. One row per product sold or purchased, including cost,
+          price, category, and the supplier that provides it. Referenced
+          by po_lines and sales_order_lines. Not part of an event sequence.
+
       - name: warehouses
+        description: >
+          Master. One row per warehouse that receives inbound shipments
+          and fulfills customer orders. Referenced by purchase_orders and
+          sales_orders. Not part of an event sequence.
+
       - name: customers
+        description: >
+          Master. One row per customer who buys products. Referenced by
+          sales_orders. Not part of an event sequence.
+
       - name: purchase_orders
+        description: >
+          Transaction, inbound step 1 of 3. One row per purchase order
+          placed with a supplier for delivery to a warehouse. Status is
+          Open, Received, or Cancelled. Lines are added next in po_lines;
+          a Received order is then delivered in shipments.
+
       - name: po_lines
+        description: >
+          Transaction, inbound step 2 of 3. One row per product line on a
+          purchase order: product, quantity, and unit cost. Created with
+          the purchase order and before the inbound shipment.
+
       - name: shipments
+        description: >
+          Transaction, inbound step 3 of 3. One row per inbound shipment
+          of a Received purchase order, including carrier, ship date, and
+          actual delivery date. This is the last step of the inbound flow.
+
       - name: sales_orders
+        description: >
+          Transaction, outbound step 1 of 2. One row per customer order
+          fulfilled from a warehouse. Status is Shipped, Delivered,
+          Returned, or Cancelled. Product lines are added next in
+          sales_order_lines.
+
       - name: sales_order_lines
+        description: >
+          Transaction, outbound step 2 of 2. One row per product line on
+          a sales order: product, quantity, and unit price. This is the
+          last step of the outbound flow.

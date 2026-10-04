@@ -2,39 +2,81 @@ version: 2
 
 models:
   - name: stg_suppliers
-    description: Cleaned suppliers from raw.
+    description: >
+      Suppliers cleaned from raw.suppliers. The source has no status or
+      active flag, so every supplier is included.
     columns:
       - name: supplier_id
+        description: Primary key.
         data_tests:
           - unique
           - not_null
+      - name: supplier_name
+        description: Supplier display name.
+        data_tests:
+          - not_null
+      - name: country
+        description: Supplier country.
+      - name: lead_time_days
+        description: Expected days from order to delivery for this supplier.
+      - name: reliability_score
+        description: Supplier reliability score between 0 and 1.
 
   - name: stg_shipments
-    description: Cleaned inbound shipments from raw.
+    description: >
+      Inbound shipments cleaned from raw.shipments. The source has no status
+      or active flag, so every shipment is included. ship_date and
+      actual_delivery_date are dates.
     columns:
       - name: shipment_id
+        description: Primary key.
         data_tests:
           - unique
           - not_null
       - name: po_id
+        description: Purchase order this shipment fulfills. Only active orders remain in stg_purchase_orders.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('stg_purchase_orders')
                 field: po_id
+      - name: carrier
+        description: Carrier that moved the shipment.
+      - name: ship_date
+        description: Date the shipment left the supplier.
+      - name: actual_delivery_date
+        description: Date the shipment arrived at the warehouse.
 
   - name: stg_purchase_orders
-    description: Cleaned purchase orders from raw.
+    description: >
+      Active purchase orders cleaned from raw.purchase_orders. Cancelled
+      orders are inactive and excluded. Open and Received orders are kept.
+      order_date and expected_delivery_date are dates.
     columns:
       - name: po_id
+        description: Primary key.
         data_tests:
           - unique
           - not_null
       - name: supplier_id
+        description: Supplier that received the order.
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('stg_suppliers')
                 field: supplier_id
+      - name: warehouse_id
+        description: Destination warehouse.
+      - name: order_date
+        description: Date the purchase order was placed.
+      - name: expected_delivery_date
+        description: Date the supplier was expected to deliver.
+      - name: status
+        description: Open or Received. Cancelled orders are filtered out.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Open', 'Received']
